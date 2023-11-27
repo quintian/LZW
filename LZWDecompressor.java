@@ -6,8 +6,9 @@ import java.io.IOException;
 import java.util.HashMap;
 
 public class LZWDecompressor {
-    HashMap<Integer, String> dictionary=new HashMap<>();
+    HashMap<Integer, String> dictionary;
     public void buildDictionary(){
+        dictionary=new HashMap<>();
         for (int i = 0; i <= 255; i++){
             dictionary.put(i,String.valueOf((char) i));
         }
@@ -41,6 +42,7 @@ public class LZWDecompressor {
         return t;
     }
     public void decompress(String inputFile, String outputFile){
+
         buildDictionary();
         byte[] byteArray; //input file read into byteArray
         try (FileInputStream fis = new FileInputStream(inputFile)) {
@@ -100,12 +102,12 @@ public class LZWDecompressor {
                     b0=byteArray[i];
                     b1=byteArray[i+1];
 
-//                    int t0=byteToInt(b0);
-//                    int t1=byteToInt(b1);
+                    int t0=byteToInt(b0);
+                    int t1=byteToInt(b1);
 
-                    code0=(b0<<4)&0xFFF;
-                    //code0=(c0<<4)&0xFFF;
-                    code0_right=((b1&0xF0)>>4)&0x0F;
+                    ///code0=(b0<<4)&0xFFF;
+                    code0=(t0<<4)&0xFFF;
+                    code0_right=((t1&0xF0)>>4)&0x0F;
                     //int code0_right=((b1)>>4)&0x0F;
                     code0=(code0|code0_right)&0xFFF;
 
@@ -114,20 +116,20 @@ public class LZWDecompressor {
                     fos.write(output.getBytes());
                     priorCode=code;
                     dictSize+=1;
+
                     if (dictSize==4096){
                         dictSize=256;
-                        dictionary=new HashMap<>();
+                        //dictionary=new HashMap<>();
                         buildDictionary();
                     }
 
                     if (i+2<byteArray.length){
                         b2=byteArray[i+2];
-                       // int t2=byteToInt(b2);
-
-                        //code1=((t1&0x0F)<<8)|(t2&0xFF);
-                        code1=((b1&0x0F)<<8)|(b2&0xFF);
-
+                        int t2=byteToInt(b2);
+                        code1=((t1&0x0F)<<8)|(t2&0xFF);
+                        //code1=((b1&0x0F)<<8)|(b2&0xFF);
                         code1=code1&0xFFF;
+
                         if (i+2==byteArray.length-1 && code1==0 ) break;
 
                         code=code1;
@@ -137,7 +139,7 @@ public class LZWDecompressor {
                         dictSize+=1;
                         if (dictSize==4096){
                             dictSize=256;
-                            dictionary=new HashMap<>();
+                            //dictionary=new HashMap<>();
                             buildDictionary();
                         }
                     }
@@ -153,10 +155,10 @@ public class LZWDecompressor {
 
     public static void main( String args[]) throws IOException {
         LZWDecompressor lzw=new LZWDecompressor();
-        //lzw.decompress( "shortwords_com.txt", "shortwords_decom.txt");
-        lzw.decompress("Crime_zipped.csv", "Crime_unzipped.csv");
+        lzw.decompress( "shortwords-compressed.txt", "shortwords-decompressed.txt");
+        lzw.decompress("CrimeLatLonXY-compressed.csv", "CrimeLatLonXY-decompressed.csv");
         //lzw.decompress("01_Overview-compressed.mp4", "01_Overview-decompressed.mp4");
-//        lzw.decompress("words-compressed.html", "words-decompressed.html");
+        //lzw.decompress("words-compressed.html", "words-decompressed.html");
 
     }
 
