@@ -29,7 +29,8 @@ public class LZWCompressor {
             // 2. take the right 4 bits within the last 12 bits of code and put in the buffer[1]'s left half
             buffer[1]=(byte)(((code&0x00F)<<4) & 0xFF); //right 4 bits of this byte is 0000
 
-            fos.write(buffer[0]);
+//            fos.write(buffer[0]);
+//            fos.write(buffer[1]); //added!
             //fos.write(buffer[1]); // 1st time write buffer[1], changed!!
 //            System.out.println("buffer 0: "+buffer[0]);
 //            String s0=String.format("%8s", Integer.toBinaryString(buffer[0] & 0xFF)).replace(' ', '0');
@@ -49,8 +50,8 @@ public class LZWCompressor {
             // 4. take the last 8 bits and put it into buffer[2]
             buffer[2]=(byte) (code&0xFF);
 
-            fos.write(buffer[1]);
-            fos.write(buffer[2]);
+//            fos.write(buffer[1]);
+//            fos.write(buffer[2]);
 
 //            System.out.println("buffer 1: "+buffer[1]);
 //            String s1=String.format("%8s", Integer.toBinaryString(buffer[1] & 0xFF)).replace(' ', '0');
@@ -68,14 +69,9 @@ public class LZWCompressor {
 
         try (FileInputStream fis = new FileInputStream(inputFile)) {
             byteArray = new byte[fis.available()];
+            //byteArray = new byte[(int) fis.getChannel().size()]; //changed!
+            //System.out.println(byteArray.length);
             fis.read(byteArray);
-
-//            System.out.println("print input bytes ");
-//            for (byte b: byteArray){
-//                String s=String.format("%8s", Integer.toBinaryString(b & 0xFF)).replace(' ', '0');
-//                System.out.print(s+", ");
-//            }
-
 
             try (FileOutputStream fos = new FileOutputStream(outputFile)) {
                 char c0=(char)byteArray[0];
@@ -100,6 +96,7 @@ public class LZWCompressor {
                     else { //if the table is full ??
                         sCode=table.get(s);
                         outputS(sCode, buffer, bufferEmpty, fos);
+                        if (!bufferEmpty) fos.write(buffer); //when buffer is full write it
                         bufferEmpty=!bufferEmpty;
                         //put code of s+c in table, update code
                         table.put(s+c, code);
@@ -119,7 +116,12 @@ public class LZWCompressor {
                 outputS(sCode, buffer, bufferEmpty, fos);
                 bufferEmpty=!bufferEmpty;
                 if (!bufferEmpty){ //if the last buffer is not full, then add 0 as the last code to fill the buffer
-                    outputS(0, buffer, false, fos); //结尾多加一个0，如果是单数
+                    fos.write(buffer[0]);
+                    fos.write(buffer[1]);
+                    //outputS(0, buffer, false, fos); //结尾多加一个0，如果是单数
+                }
+                else{ //added
+                    fos.write(buffer);
                 }
 
             } catch (IOException e) {
@@ -134,11 +136,11 @@ public class LZWCompressor {
     public static void main( String args[]) throws IOException {
         LZWCompressor lzw=new LZWCompressor();
 
-        lzw.compress("shortwords.txt", "shortwords-compressed.txt");
-        lzw.compress("CrimeLatLonXY.csv", "CrimeLatLonXY-compressed.csv");
+        //lzw.compress("shortwords.txt", "shortwords-compressed.txt");
+        //lzw.compress("CrimeLatLonXY.csv", "CrimeLatLonXY-compressed.csv");
         //lzw.compress("01_Overview.mp4", "01_Overview-compressed.mp4");
-        //lzw.compress("words.html", "words-compressed.html");
-
+        lzw.compress("words.html", "words-compressed.html");
+        //lzw.compress("binary57", "binary57-compressed");
     }
 
 }
