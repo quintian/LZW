@@ -1,5 +1,16 @@
 package kunt;
 
+/**
+ *  @Name: Quinn Tian
+ *  @Course: 95771 Data Structures and Algorithms
+ *  @Assignment: Project 5
+ */
+
+/**
+ * This class is equivalent of HashMap to implement the dictionary for LZW
+ * compression, and stores the pair of String-Integer value in Data field of each node.
+ * It contains an initializer, put(), get(), and containsKey() methods, just like the HashMap.
+ */
 public class MyTable {
 
     private SinglyLinkedList[] array;
@@ -41,7 +52,7 @@ public class MyTable {
 
     }
     public boolean containsKey(String s){
-        int index=Math.abs(s.hashCode())%127;
+        int index=Math.abs(s.hashCode())%127; //index of the array of linked list
         SinglyLinkedList list=array[index];
 
         list.reset();
